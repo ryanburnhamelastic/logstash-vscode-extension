@@ -2,7 +2,9 @@
 
 This extension transforms Visual Studio Code into a powerful Logstash configuration editor, enhancing productivity when creating and maintaining Logstash pipelines.
 
-![Logstash Pipeline Builder](https://raw.githubusercontent.com/elastic/example-images/main/logstash-logo.png)
+![Logstash Pipeline Visualization](media/screenshots/pipeline-visualization.png)
+ 
+*Logstash Pipeline Visualization showing input plugins, filter sequence, and configuration details*
 
 ## What is Logstash?
 
