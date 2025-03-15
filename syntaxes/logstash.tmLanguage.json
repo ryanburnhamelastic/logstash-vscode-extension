@@ -1,0 +1,129 @@
+{
+  "name": "Logstash",
+  "scopeName": "source.logstash",
+  "fileTypes": ["conf", "config", "logstash"],
+  "patterns": [
+    {
+      "include": "#comments"
+    },
+    {
+      "include": "#strings"
+    },
+    {
+      "include": "#plugin-sections"
+    },
+    {
+      "include": "#conditionals"
+    },
+    {
+      "include": "#keywords"
+    },
+    {
+      "include": "#variables"
+    },
+    {
+      "include": "#numbers"
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.line.number-sign.logstash",
+          "match": "#.*$"
+        }
+      ]
+    },
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.double.logstash",
+          "begin": "\"",
+          "end": "\"",
+          "patterns": [
+            {
+              "name": "constant.character.escape.logstash",
+              "match": "\\\\."
+            }
+          ]
+        },
+        {
+          "name": "string.quoted.single.logstash",
+          "begin": "'",
+          "end": "'",
+          "patterns": [
+            {
+              "name": "constant.character.escape.logstash",
+              "match": "\\\\."
+            }
+          ]
+        }
+      ]
+    },
+    "plugin-sections": {
+      "patterns": [
+        {
+          "name": "entity.name.type.input.logstash",
+          "match": "\\b(input)\\s*\\{",
+          "captures": {
+            "1": { "name": "keyword.control.input.logstash" }
+          }
+        },
+        {
+          "name": "entity.name.type.filter.logstash",
+          "match": "\\b(filter)\\s*\\{",
+          "captures": {
+            "1": { "name": "keyword.control.filter.logstash" }
+          }
+        },
+        {
+          "name": "entity.name.type.output.logstash",
+          "match": "\\b(output)\\s*\\{",
+          "captures": {
+            "1": { "name": "keyword.control.output.logstash" }
+          }
+        }
+      ]
+    },
+    "conditionals": {
+      "patterns": [
+        {
+          "name": "keyword.control.conditional.logstash",
+          "match": "\\b(if|else|else\\s+if)\\b"
+        }
+      ]
+    },
+    "keywords": {
+      "patterns": [
+        {
+          "name": "support.function.logstash",
+          "match": "\\b(file|tcp|udp|http|elasticsearch|stdout|grok|mutate|date|json|csv|geoip|dns|cidr|clone|drop|ruby|split|metrics|throttle)\\b"
+        },
+        {
+          "name": "keyword.operator.logstash",
+          "match": "=>|==|!=|>=|<=|>|<|=~|!~|in|not\\s+in|and|or|nand|xor|!|=="
+        }
+      ]
+    },
+    "variables": {
+      "patterns": [
+        {
+          "name": "variable.other.logstash",
+          "match": "\\[.*?\\]"
+        },
+        {
+          "name": "support.variable.logstash",
+          "match": "%\\{[^}]*\\}"
+        }
+      ]
+    },
+    "numbers": {
+      "patterns": [
+        {
+          "name": "constant.numeric.logstash",
+          "match": "\\b[0-9]+\\b"
+        }
+      ]
+    }
+  }
+} 

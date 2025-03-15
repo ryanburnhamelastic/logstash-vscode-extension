@@ -22,16 +22,18 @@ This extension transforms Visual Studio Code into a powerful Logstash configurat
   - **Input plugins**: file, beats, tcp, udp, etc.
   - **Filter plugins**: grok, mutate, date, json, etc.
   - **Output plugins**: elasticsearch, stdout, file, etc.
+- Parameter completion for specific plugins
 
 ### Interactive Documentation
 - Hover over Logstash keywords to view inline documentation
 - Quick reference information without leaving your editor
 - Helps both beginners and experts understand configuration options
 
-### Pipeline Visualization (Coming Soon)
+### Pipeline Visualization
 - Visual representation of your Logstash pipeline
-- Drag-and-drop interface for pipeline components
-- Flow visualization from inputs through filters to outputs
+- Interactive diagram showing inputs, filters, and outputs
+- Hover over components to see configuration details
+- Accessible via command palette: "Logstash: Visualize Pipeline"
 
 ### Configuration Validation (Coming Soon)
 - Real-time validation of your Logstash configuration
@@ -70,6 +72,13 @@ This extension transforms Visual Studio Code into a powerful Logstash configurat
 2. Inside a section block, press Ctrl+Space to trigger plugin suggestions
 3. The extension intelligently suggests appropriate plugins for each section
 
+### Visualizing Your Pipeline
+1. Open a Logstash configuration file
+2. Open the Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
+3. Type "Logstash: Visualize Pipeline" and press Enter
+4. A visualization panel will open showing your pipeline structure
+5. Hover over components to see their configuration details
+
 ### Example: Building a Basic Pipeline
 ```
 input {
@@ -100,7 +109,7 @@ output {
 ### Using Commands
 1. Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
 2. Type "Logstash" to see available commands:
-   - "Logstash: Visualize Pipeline" (coming soon)
+   - "Logstash: Visualize Pipeline" - View a visual representation of your pipeline
    - "Logstash: Validate Configuration" (coming soon)
 
 ## Keyboard Shortcuts
@@ -139,7 +148,7 @@ npm test
 ```
 
 ## Future Plans
-- Pipeline visualization with interactive diagram
+- Enhanced pipeline visualization with drag-and-drop editing
 - Real-time configuration validation
 - Snippets for common patterns
 - Integration with Elastic Cloud
@@ -156,4 +165,4 @@ This extension is licensed under the [MIT License](LICENSE).
 
 ---
 
-**Enjoy building your Logstash pipelines!**
+**Enjoy building your Logstash pipelines!** 

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Logstash Pipeline Visualization</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+            padding: 0;
+            margin: 0;
+            background-color: var(--vscode-editor-background);
+            color: var(--vscode-editor-foreground);
+            --vscode-textLink-foreground-rgb: 0, 122, 204;
+        }
+        
+        /* For dark themes */
+        @media (prefers-color-scheme: dark) {
+            body {
+                --vscode-textLink-foreground-rgb: 58, 150, 221;
+            }
+        }
+        .container {
+            padding: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .input {
+            background-color: rgba(65, 105, 225, 0.15);
+            border-left: 4px solid royalblue;
+        }
+        .filter {
+            background-color: rgba(255, 165, 0, 0.15);
+            border-left: 4px solid orange;
+        }
+        .output {
+            background-color: rgba(46, 139, 87, 0.15);
+            border-left: 4px solid seagreen;
+        }
+        .title {
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        .plugin {
+            margin-left: 20px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: var(--vscode-editor-background);
+            border-radius: 5px;
+            border: 1px solid var(--vscode-widget-border);
+            transition: transform 0.2s ease;
+        }
+        .plugin:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+        }
+        .plugin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed var(--vscode-widget-border);
+        }
+        .plugin-name {
+            font-weight: bold;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            padding-right: 10px;
+            word-break: break-word;
+        }
+        .plugin-icon {
+            margin-right: 8px;
+            font-size: 16px;
+            color: var(--vscode-textLink-foreground);
+            flex-shrink: 0;
+        }
+        .plugin-official {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background-color: var(--vscode-badge-background);
+            color: var(--vscode-badge-foreground);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .plugin-unknown {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            background-color: #dd9323;
+            color: white;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+        .plugin-config {
+            font-family: 'SF Mono', Monaco, Menlo, Consolas, 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            background-color: var(--vscode-textCodeBlock-background);
+            padding: 12px;
+            border-radius: 3px;
+            white-space: pre-wrap;
+            margin-top: 8px;
+            max-height: 150px;
+            overflow-y: auto;
+            line-height: 1.4;
+            word-break: break-word;
+        }
+        .plugin-docs {
+            margin-top: 12px;
+            padding-top: 8px;
+            font-size: 12px;
+            text-align: right;
+        }
+        .plugin-docs a {
+            color: var(--vscode-textLink-foreground);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background-color: rgba(var(--vscode-textLink-foreground-rgb), 0.1);
+        }
+        .plugin-docs a:hover {
+            text-decoration: underline;
+            background-color: rgba(var(--vscode-textLink-foreground-rgb), 0.2);
+        }
+        .doc-icon {
+            margin-right: 6px;
+            font-size: 14px;
+        }
+        .pipeline-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 20px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .flow-section {
+            padding: 12px 15px;
+            border-radius: 5px;
+            flex: 1;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .arrow {
+            font-size: 24px;
+            margin: 0 15px;
+            color: var(--vscode-descriptionForeground);
+        }
+        #no-pipeline {
+            text-align: center;
+            padding: 80px 50px;
+            color: var(--vscode-disabledForeground);
+            font-style: italic;
+        }
+        .plugin-count {
+            font-size: 12px;
+            margin-left: 5px;
+            color: var(--vscode-descriptionForeground);
+            font-weight: normal;
+        }
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            justify-content: space-between;
+        }
+        .collapsible {
+            cursor: pointer;
+            user-select: none;
+            padding: 6px 10px;
+            border-radius: 3px;
+            background-color: var(--vscode-button-secondaryBackground);
+            color: var(--vscode-button-secondaryForeground);
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            margin-top: 5px;
+        }
+        .collapsible:hover {
+            background-color: var(--vscode-button-secondaryHoverBackground);
+        }
+        .collapse-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out;
+        }
+        .expand-icon {
+            font-size: 10px;
+            margin-right: 5px;
+        }
+        .empty-notice {
+            font-style: italic;
+            color: var(--vscode-disabledForeground);
+            margin: 10px 0;
+            text-align: center;
+        }
+        .filter-section-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 15px;
+            margin-top: 10px;
+        }
+        .filter-plugin-info {
+            margin-top: 5px;
+            font-size: 12px;
+            color: var(--vscode-descriptionForeground);
+            margin-bottom: 5px;
+        }
+        .filter-sequence {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: rgba(255, 165, 0, 0.05);
+            border-radius: 5px;
+        }
+        .sequence-item {
+            background-color: rgba(255, 165, 0, 0.2);
+            margin: 5px;
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+        }
+        .sequence-arrow {
+            color: var(--vscode-descriptionForeground);
+            margin: 0 2px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Logstash Pipeline Visualization</h1>
+        <div id="pipeline-container">
+            <div id="no-pipeline">
+                Loading pipeline data...
+            </div>
+            
+            <div id="pipeline-content" style="display: none;">
+                <div class="pipeline-flow">
+                    <div class="flow-section input">Input <span id="input-count" class="plugin-count"></span></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-section filter">Filter <span id="filter-count" class="plugin-count"></span></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-section output">Output <span id="output-count" class="plugin-count"></span></div>
+                </div>
+                
+                <!-- Filter sequence visualization -->
+                <div id="filter-sequence" class="filter-sequence">
+                    <!-- Will be populated with filter sequence -->
+                </div>
+                
+                <div class="sections-container">
+                    <div id="input-section" class="section input">
+                        <div class="section-header">
+                            <div class="title">Input Plugins</div>
+                        </div>
+                        <div id="input-plugins"></div>
+                    </div>
+                    
+                    <div id="filter-section" class="section filter">
+                        <div class="section-header">
+                            <div class="title">Filter Plugins</div>
+                            <div class="filter-plugin-info">Events are processed through filters in sequence</div>
+                        </div>
+                        <div id="filter-plugins" class="filter-section-content"></div>
+                    </div>
+                    
+                    <div id="output-section" class="section output">
+                        <div class="section-header">
+                            <div class="title">Output Plugins</div>
+                        </div>
+                        <div id="output-plugins"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const vscode = acquireVsCodeApi();
+        
+        window.addEventListener('message', event => {
+            const message = event.data;
+            
+            if (message.type === 'setPipeline') {
+                renderPipeline(message.pipeline);
+            }
+        });
+        
+        function renderPipeline(pipeline) {
+            const noPipeline = document.getElementById('no-pipeline');
+            const pipelineContent = document.getElementById('pipeline-content');
+            
+            if (!pipeline) {
+                noPipeline.textContent = 'No valid pipeline configuration found.';
+                return;
+            }
+            
+            // Hide loading message and show content
+            noPipeline.style.display = 'none';
+            pipelineContent.style.display = 'block';
+            
+            // Update counts
+            document.getElementById('input-count').textContent = `(${pipeline.input.length})`;
+            document.getElementById('filter-count').textContent = `(${pipeline.filter.length})`;
+            document.getElementById('output-count').textContent = `(${pipeline.output.length})`;
+            
+            // Render filter sequence visualization
+            renderFilterSequence(pipeline.filter);
+            
+            // Render input plugins
+            const inputPlugins = document.getElementById('input-plugins');
+            inputPlugins.innerHTML = '';
+            
+            if (pipeline.input && pipeline.input.length > 0) {
+                pipeline.input.forEach(plugin => {
+                    inputPlugins.appendChild(createPluginElement(plugin, 'input'));
+                });
+            } else {
+                inputPlugins.innerHTML = '<div class="empty-notice">No input plugins found</div>';
+            }
+            
+            // Render filter plugins
+            const filterPlugins = document.getElementById('filter-plugins');
+            filterPlugins.innerHTML = '';
+            
+            if (pipeline.filter && pipeline.filter.length > 0) {
+                pipeline.filter.forEach((plugin, index) => {
+                    filterPlugins.appendChild(createPluginElement(plugin, 'filter', index + 1));
+                });
+            } else {
+                filterPlugins.innerHTML = '<div class="empty-notice">No filter plugins found</div>';
+            }
+            
+            // Render output plugins
+            const outputPlugins = document.getElementById('output-plugins');
+            outputPlugins.innerHTML = '';
+            
+            if (pipeline.output && pipeline.output.length > 0) {
+                pipeline.output.forEach(plugin => {
+                    outputPlugins.appendChild(createPluginElement(plugin, 'output'));
+                });
+            } else {
+                outputPlugins.innerHTML = '<div class="empty-notice">No output plugins found</div>';
+            }
+            
+            // Add toggle functionality
+            document.querySelectorAll('.collapsible').forEach(item => {
+                item.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                    const content = this.nextElementSibling;
+                    const icon = this.querySelector('.expand-icon');
+                    
+                    if (content.style.maxHeight) {
+                        content.style.maxHeight = null;
+                        icon.textContent = '▶';
+                    } else {
+                        content.style.maxHeight = content.scrollHeight + "px";
+                        icon.textContent = '▼';
+                    }
+                });
+            });
+        }
+        
+        function renderFilterSequence(filters) {
+            const sequenceContainer = document.getElementById('filter-sequence');
+            sequenceContainer.innerHTML = '';
+            
+            if (!filters || filters.length === 0) {
+                sequenceContainer.style.display = 'none';
+                return;
+            }
+            
+            sequenceContainer.style.display = 'flex';
+            
+            // Add event starting point
+            const eventStart = document.createElement('div');
+            eventStart.className = 'sequence-item';
+            eventStart.textContent = 'Event';
+            sequenceContainer.appendChild(eventStart);
+            
+            // Add arrow
+            sequenceContainer.appendChild(createSequenceArrow());
+            
+            // Add each filter in sequence
+            filters.forEach((filter, index) => {
+                const filterItem = document.createElement('div');
+                filterItem.className = 'sequence-item';
+                filterItem.innerHTML = `<span class="plugin-icon">⚙️</span> ${filter.name}`;
+                sequenceContainer.appendChild(filterItem);
+                
+                // Add arrow if not the last filter
+                if (index < filters.length - 1) {
+                    sequenceContainer.appendChild(createSequenceArrow());
+                }
+            });
+        }
+        
+        function createSequenceArrow() {
+            const arrow = document.createElement('div');
+            arrow.className = 'sequence-arrow';
+            arrow.textContent = '→';
+            return arrow;
+        }
+        
+        function createPluginElement(plugin, type, index) {
+            const div = document.createElement('div');
+            div.className = 'plugin';
+            
+            // Create plugin header
+            const header = document.createElement('div');
+            header.className = 'plugin-header';
+            
+            // Plugin name with icon
+            const nameSpan = document.createElement('div');
+            nameSpan.className = 'plugin-name';
+            
+            // Add type-specific icon
+            let icon = '';
+            switch(type) {
+                case 'input': icon = '📥'; break;
+                case 'filter': icon = '⚙️'; break;
+                case 'output': icon = '📤'; break;
+            }
+            
+            // If filter has an index, add it
+            const indexText = index ? `#${index}: ` : '';
+            nameSpan.innerHTML = `<span class="plugin-icon">${icon}</span>${indexText}${plugin.name}`;
+            header.appendChild(nameSpan);
+            
+            // Official badge
+            const badge = document.createElement('span');
+            if (plugin.isOfficial) {
+                badge.className = 'plugin-official';
+                badge.textContent = 'Official Plugin';
+            } else {
+                badge.className = 'plugin-unknown';
+                badge.textContent = 'Custom Plugin';
+            }
+            header.appendChild(badge);
+            
+            div.appendChild(header);
+            
+            // Add configuration if available
+            if (plugin.config && plugin.config.trim()) {
+                // Add collapsible header
+                const configHeader = document.createElement('div');
+                configHeader.className = 'collapsible';
+                configHeader.innerHTML = '<span class="expand-icon">▶</span> Configuration';
+                div.appendChild(configHeader);
+                
+                // Add configuration content (initially collapsed)
+                const configContent = document.createElement('div');
+                configContent.className = 'collapse-content plugin-config';
+                configContent.textContent = plugin.config;
+                div.appendChild(configContent);
+            }
+            
+            // Add documentation link for official plugins
+            if (plugin.isOfficial && plugin.docUrl) {
+                const docs = document.createElement('div');
+                docs.className = 'plugin-docs';
+                docs.innerHTML = `<a href="${plugin.docUrl}" target="_blank"><span class="doc-icon">📖</span>View Documentation</a>`;
+                div.appendChild(docs);
+            }
+            
+            return div;
+        }
+    </script>
+</body>
+</html> 

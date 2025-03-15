@@ -1,49 +1,103 @@
 {
-  "name": "logstash",
-  "displayName": "logstash",
-  "description": "VS Code Extension for Logstash",
-  "version": "0.0.1",
-  "engines": {
-    "vscode": "^1.98.0"
-  },
-  "categories": [
-    "Other"
-  ],
-  "activationEvents": [],
-  "main": "./dist/extension.js",
-  "contributes": {
-    "commands": [
-      {
-        "command": "logstash.helloWorld",
-        "title": "Hello World"
-      }
-    ]
-  },
-  "scripts": {
-    "vscode:prepublish": "npm run package",
-    "compile": "npm run check-types && npm run lint && node esbuild.js",
-    "watch": "npm-run-all -p watch:*",
-    "watch:esbuild": "node esbuild.js --watch",
-    "watch:tsc": "tsc --noEmit --watch --project tsconfig.json",
-    "package": "npm run check-types && npm run lint && node esbuild.js --production",
-    "compile-tests": "tsc -p . --outDir out",
-    "watch-tests": "tsc -p . -w --outDir out",
-    "pretest": "npm run compile-tests && npm run compile && npm run lint",
-    "check-types": "tsc --noEmit",
-    "lint": "eslint src",
-    "test": "vscode-test"
-  },
-  "devDependencies": {
-    "@types/mocha": "^10.0.10",
-    "@types/node": "20.x",
-    "@types/vscode": "^1.98.0",
-    "@typescript-eslint/eslint-plugin": "^8.25.0",
-    "@typescript-eslint/parser": "^8.25.0",
-    "@vscode/test-cli": "^0.0.10",
-    "@vscode/test-electron": "^2.4.1",
-    "esbuild": "^0.25.0",
-    "eslint": "^9.21.0",
-    "npm-run-all": "^4.1.5",
-    "typescript": "^5.7.3"
-  }
-}
+    "name": "logstash",
+    "displayName": "Logstash",
+    "description": "VS Code Extension for Logstash",
+    "version": "0.0.1",
+    "publisher": "ryanburnhamelastic",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/ryanburnhamelastic/logstash-vscode"
+    },
+    "engines": {
+        "vscode": "^1.85.0"
+    },
+    "categories": [
+        "Programming Languages",
+        "Snippets",
+        "Other"
+    ],
+    "activationEvents": [
+        "onStartupFinished",
+        "onLanguage:logstash",
+        "onCommand:logstash.visualizePipeline",
+        "onCommand:logstash.validateConfig"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "languages": [
+            {
+                "id": "logstash",
+                "aliases": [
+                    "Logstash",
+                    "logstash"
+                ],
+                "extensions": [
+                    ".conf",
+                    ".config",
+                    ".logstash"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "logstash",
+                "scopeName": "source.logstash",
+                "path": "./syntaxes/logstash.tmLanguage.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "logstash.visualizePipeline",
+                "title": "Logstash: Visualize Pipeline",
+                "category": "Logstash"
+            },
+            {
+                "command": "logstash.validateConfig",
+                "title": "Logstash: Validate Configuration",
+                "category": "Logstash"
+            }
+        ],
+        "menus": {
+            "editor/context": [
+                {
+                    "when": "editorLangId == logstash",
+                    "command": "logstash.visualizePipeline",
+                    "group": "navigation"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "logstash.visualizePipeline"
+                },
+                {
+                    "command": "logstash.validateConfig"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run esbuild-base -- --minify",
+        "esbuild-base": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
+        "esbuild": "npm run esbuild-base -- --sourcemap",
+        "esbuild-watch": "npm run esbuild-base -- --sourcemap --watch",
+        "test-compile": "tsc -p ./",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "pretest": "npm run compile && npm run lint",
+        "lint": "eslint src --ext ts",
+        "test": "vscode-test"
+    },
+    "devDependencies": {
+        "@types/vscode": "^1.85.0",
+        "@types/mocha": "^10.0.6",
+        "@types/node": "18.x",
+        "@typescript-eslint/eslint-plugin": "^6.15.0",
+        "@typescript-eslint/parser": "^6.15.0",
+        "eslint": "^8.56.0",
+        "typescript": "^5.3.3",
+        "@vscode/test-cli": "^0.0.4",
+        "@vscode/test-electron": "^2.3.8",
+        "esbuild": "^0.19.11"
+    }
+} 
