@@ -15,30 +15,31 @@ This extension transforms Visual Studio Code into a powerful Logstash configurat
 - Visual differentiation between sections, plugins, strings, and operators
 - Easier identification of configuration structure and components
 
-### Intelligent Auto-completion
-- Context-aware suggestions based on your current position in the configuration
-- Main section completion (input, filter, output)
-- Plugin completion within each section:
-  - **Input plugins**: file, beats, tcp, udp, etc.
-  - **Filter plugins**: grok, mutate, date, json, etc.
-  - **Output plugins**: elasticsearch, stdout, file, etc.
-- Parameter completion for specific plugins
+### Comprehensive Plugin Support
+- Full support for all official Elastic Logstash plugins:
+  - 50+ input plugins
+  - 46+ filter plugins 
+  - 50+ output plugins
+- Plugin validation against the official Elastic documentation
+- Identification of custom vs. official plugins
 
 ### Interactive Documentation
+- Direct links to official Elastic documentation for each plugin
 - Hover over Logstash keywords to view inline documentation
 - Quick reference information without leaving your editor
-- Helps both beginners and experts understand configuration options
 
-### Pipeline Visualization
-- Visual representation of your Logstash pipeline
-- Interactive diagram showing inputs, filters, and outputs
-- Hover over components to see configuration details
+### Advanced Pipeline Visualization
+- Detailed visual representation of your Logstash pipeline
+- Interactive diagram showing data flow from inputs through filters to outputs
+- Filter sequence visualization displaying the exact order of processing
+- Plugin configuration inspection
+- Plugin categorization with official/custom status badges
 - Accessible via command palette: "Logstash: Visualize Pipeline"
 
-### Configuration Validation (Coming Soon)
-- Real-time validation of your Logstash configuration
-- Error detection and prevention
-- Best practice suggestions
+### Configuration Validation
+- Validation of plugins against official Elastic documentation
+- Error detection for unknown or unsupported plugins
+- Access via "Logstash: Validate Configuration" command
 
 ## Installation
 
@@ -49,7 +50,7 @@ This extension transforms Visual Studio Code into a powerful Logstash configurat
 4. Click "Install"
 
 ### Manual Installation
-1. Download the `.vsix` file from [GitHub Releases](https://github.com/yourusername/logstash-vscode/releases)
+1. Download the `.vsix` file from [GitHub Releases](https://github.com/ryanburnhamelastic/logstash-vscode/releases)
 2. In VS Code, go to Extensions view (Ctrl+Shift+X or Cmd+Shift+X)
 3. Click the "..." menu at the top of the Extensions view
 4. Select "Install from VSIX..."
@@ -67,42 +68,79 @@ This extension transforms Visual Studio Code into a powerful Logstash configurat
 2. The extension will automatically activate
 3. Navigate through your configuration with enhanced syntax highlighting
 
-### Using Auto-completion
-1. Begin typing in an empty file to see section suggestions (input, filter, output)
-2. Inside a section block, press Ctrl+Space to trigger plugin suggestions
-3. The extension intelligently suggests appropriate plugins for each section
-
 ### Visualizing Your Pipeline
 1. Open a Logstash configuration file
 2. Open the Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
 3. Type "Logstash: Visualize Pipeline" and press Enter
 4. A visualization panel will open showing your pipeline structure
-5. Hover over components to see their configuration details
+5. The visualization includes:
+   - Input, filter, and output sections with plugin counts
+   - Filter sequence diagram showing processing order
+   - Detailed configuration for each plugin (click "Configuration" to expand)
+   - Documentation links for official plugins
+   - Official/custom plugin badges
 
-### Example: Building a Basic Pipeline
+### Validating Your Configuration
+1. Open a Logstash configuration file
+2. Open the Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
+3. Type "Logstash: Validate Configuration" and press Enter
+4. The extension will check all plugins against the official Elastic documentation
+5. You'll receive notifications about any unknown or custom plugins
+
+### Example: Building a Complex Pipeline
 ```
 input {
-    file {
-        path => "/var/log/system.log"
-        start_position => "beginning"
-    }
+  file {
+    path => "/var/log/apache2/access.log"
+    start_position => "beginning"
+    tags => ["apache"]
+  }
+  
+  beats {
+    port => 5044
+    host => "0.0.0.0"
+    ssl => false
+    tags => ["filebeat"]
+  }
 }
 
 filter {
+  # Parse logs with different patterns based on source
+  if "apache" in [tags] {
     grok {
-        match => { "message" => "%{COMBINEDAPACHELOG}" }
+      match => { "message" => "%{COMBINEDAPACHELOG}" }
     }
-    date {
-        match => [ "timestamp", "dd/MMM/yyyy:HH:mm:ss Z" ]
+  } else if "filebeat" in [tags] {
+    grok {
+      match => { "message" => "%{SYSLOGLINE}" }
     }
+  }
+
+  # Add timestamp
+  date {
+    match => [ "timestamp", "dd/MMM/yyyy:HH:mm:ss Z" ]
+    target => "@timestamp"
+  }
+
+  # Add geoip information based on client IP
+  geoip {
+    source => "clientip"
+    target => "geo"
+  }
+
+  # UUID for each event
+  uuid {
+    target => "event_id"
+  }
 }
 
 output {
-    elasticsearch {
-        hosts => ["localhost:9200"]
-        index => "system-%{+YYYY.MM.dd}"
-    }
-    stdout { codec => rubydebug }
+  elasticsearch {
+    hosts => ["localhost:9200"]
+    index => "logs-%{+YYYY.MM.dd}"
+  }
+  
+  stdout { codec => rubydebug }
 }
 ```
 
@@ -110,23 +148,35 @@ output {
 1. Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
 2. Type "Logstash" to see available commands:
    - "Logstash: Visualize Pipeline" - View a visual representation of your pipeline
-   - "Logstash: Validate Configuration" (coming soon)
+   - "Logstash: Validate Configuration" - Check plugins against official documentation
 
 ## Keyboard Shortcuts
 - `Ctrl+Space` (Windows/Linux) or `Cmd+Space` (macOS): Trigger suggestions
 - `Hover` over keywords for documentation
 
-## Extension Settings
-This extension contributes the following settings (coming soon):
-* `logstash.validation.enabled`: Enable/disable configuration validation
-* `logstash.visualization.autoUpdate`: Automatically update visualization on changes
+## Supported Plugins
+
+This extension supports all the official Logstash plugins from the Elastic documentation:
+
+### Filter Plugins
+The extension supports all 46+ official filter plugins from Elastic, including:
+- grok, mutate, date, json, csv 
+- geoip, cidr, dns
+- ruby, http
+- kv, dissect
+- drop, clone, translate
+- useragent, fingerprint, uuid
+- throttle, sleep, truncate
+- ...and many more!
+
+Visit the [Elastic Filter Plugins Documentation](https://www.elastic.co/guide/en/logstash/current/filter-plugins.html) for a complete list.
 
 ## Development
 
 ### Building from Source
 1. Clone the repository
    ```
-   git clone https://github.com/yourusername/logstash-vscode.git
+   git clone https://github.com/ryanburnhamelastic/logstash-vscode.git
    ```
 2. Install dependencies
    ```
@@ -135,29 +185,23 @@ This extension contributes the following settings (coming soon):
    ```
 3. Build the extension
    ```
-   npm run compile
+   npm run esbuild
    ```
 4. Package the extension
    ```
    vsce package
    ```
 
-### Running Tests
-```
-npm test
-```
-
 ## Future Plans
-- Enhanced pipeline visualization with drag-and-drop editing
-- Real-time configuration validation
+- Drag-and-drop pipeline editing
 - Snippets for common patterns
 - Integration with Elastic Cloud
-- Support for conditional statements and expressions
+- Support for complex conditional statements visualization
 - Performance analysis suggestions
 
 ## Support
 
-If you encounter any issues or have feature suggestions, please open an issue on the [GitHub repository](https://github.com/yourusername/logstash-vscode/issues).
+If you encounter any issues or have feature suggestions, please open an issue on the [GitHub repository](https://github.com/ryanburnhamelastic/logstash-vscode/issues).
 
 ## License
 
