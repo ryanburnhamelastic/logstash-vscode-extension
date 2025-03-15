@@ -1,69 +1,159 @@
-# Logstash Extension for VS Code
+# Logstash Pipeline Builder for VS Code
 
-This extension provides enhanced support for Logstash configuration files in Visual Studio Code.
+This extension transforms Visual Studio Code into a powerful Logstash configuration editor, enhancing productivity when creating and maintaining Logstash pipelines.
 
-## Features
+![Logstash Pipeline Builder](https://raw.githubusercontent.com/elastic/example-images/main/logstash-logo.png)
 
-- Syntax highlighting for Logstash configuration files
-- Auto-completion for:
-  - Main sections (input, filter, output)
-  - Common plugins within each section
-- Hover information for Logstash components
-- Commands for pipeline visualization and validation (coming soon)
+## What is Logstash?
 
-## Requirements
+[Logstash](https://www.elastic.co/logstash/) is an open-source data processing pipeline that ingests, transforms, and sends data to various destinations. It's a core component of the Elastic Stack (ELK) used for log management, metrics collection, and data enrichment.
 
-No additional requirements.
+## Extension Features
 
-## Getting Started
+### Syntax Highlighting
+- Clear syntax coloring for Logstash configuration files
+- Visual differentiation between sections, plugins, strings, and operators
+- Easier identification of configuration structure and components
 
-1. Create or open a file with a `.conf` extension
-2. Start writing your Logstash configuration
-3. Experience the benefits of syntax highlighting and autocompletion
+### Intelligent Auto-completion
+- Context-aware suggestions based on your current position in the configuration
+- Main section completion (input, filter, output)
+- Plugin completion within each section:
+  - **Input plugins**: file, beats, tcp, udp, etc.
+  - **Filter plugins**: grok, mutate, date, json, etc.
+  - **Output plugins**: elasticsearch, stdout, file, etc.
 
-## Commands
+### Interactive Documentation
+- Hover over Logstash keywords to view inline documentation
+- Quick reference information without leaving your editor
+- Helps both beginners and experts understand configuration options
 
-- `Logstash: Visualize Pipeline` - Visualize your pipeline structure (coming soon)
-- `Logstash: Validate Configuration` - Validate your Logstash configuration (coming soon)
+### Pipeline Visualization (Coming Soon)
+- Visual representation of your Logstash pipeline
+- Drag-and-drop interface for pipeline components
+- Flow visualization from inputs through filters to outputs
 
-## Known Issues
+### Configuration Validation (Coming Soon)
+- Real-time validation of your Logstash configuration
+- Error detection and prevention
+- Best practice suggestions
 
-This is an initial release with basic functionality.
+## Installation
 
-## Release Notes
+### From VS Code Marketplace (Coming Soon)
+1. Open VS Code
+2. Go to Extensions view (Ctrl+Shift+X or Cmd+Shift+X)
+3. Search for "Logstash Pipeline Builder"
+4. Click "Install"
 
-### 0.0.1
+### Manual Installation
+1. Download the `.vsix` file from [GitHub Releases](https://github.com/yourusername/logstash-vscode/releases)
+2. In VS Code, go to Extensions view (Ctrl+Shift+X or Cmd+Shift+X)
+3. Click the "..." menu at the top of the Extensions view
+4. Select "Install from VSIX..."
+5. Choose the downloaded .vsix file
 
-Initial release with basic syntax highlighting, autocompletion, and hover information.
+## Usage Guide
+
+### Creating a New Logstash Configuration File
+1. Open VS Code
+2. Create a new file with a `.conf` extension (e.g., `pipeline.conf`)
+3. Start typing to see auto-completions and suggestions
+
+### Working with Existing Configurations
+1. Open any `.conf` file containing Logstash configuration
+2. The extension will automatically activate
+3. Navigate through your configuration with enhanced syntax highlighting
+
+### Using Auto-completion
+1. Begin typing in an empty file to see section suggestions (input, filter, output)
+2. Inside a section block, press Ctrl+Space to trigger plugin suggestions
+3. The extension intelligently suggests appropriate plugins for each section
+
+### Example: Building a Basic Pipeline
+```
+input {
+    file {
+        path => "/var/log/system.log"
+        start_position => "beginning"
+    }
+}
+
+filter {
+    grok {
+        match => { "message" => "%{COMBINEDAPACHELOG}" }
+    }
+    date {
+        match => [ "timestamp", "dd/MMM/yyyy:HH:mm:ss Z" ]
+    }
+}
+
+output {
+    elasticsearch {
+        hosts => ["localhost:9200"]
+        index => "system-%{+YYYY.MM.dd}"
+    }
+    stdout { codec => rubydebug }
+}
+```
+
+### Using Commands
+1. Open Command Palette (Ctrl+Shift+P or Cmd+Shift+P)
+2. Type "Logstash" to see available commands:
+   - "Logstash: Visualize Pipeline" (coming soon)
+   - "Logstash: Validate Configuration" (coming soon)
+
+## Keyboard Shortcuts
+- `Ctrl+Space` (Windows/Linux) or `Cmd+Space` (macOS): Trigger suggestions
+- `Hover` over keywords for documentation
 
 ## Extension Settings
+This extension contributes the following settings (coming soon):
+* `logstash.validation.enabled`: Enable/disable configuration validation
+* `logstash.visualization.autoUpdate`: Automatically update visualization on changes
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+## Development
 
-For example:
+### Building from Source
+1. Clone the repository
+   ```
+   git clone https://github.com/yourusername/logstash-vscode.git
+   ```
+2. Install dependencies
+   ```
+   cd logstash-vscode/logstash
+   npm install
+   ```
+3. Build the extension
+   ```
+   npm run compile
+   ```
+4. Package the extension
+   ```
+   vsce package
+   ```
 
-This extension contributes the following settings:
+### Running Tests
+```
+npm test
+```
 
-* `myExtension.enable`: Enable/disable this extension.
-* `myExtension.thing`: Set to `blah` to do something.
+## Future Plans
+- Pipeline visualization with interactive diagram
+- Real-time configuration validation
+- Snippets for common patterns
+- Integration with Elastic Cloud
+- Support for conditional statements and expressions
+- Performance analysis suggestions
 
-## Following extension guidelines
+## Support
 
-Ensure that you've read through the extensions guidelines and follow the best practices for creating your extension.
+If you encounter any issues or have feature suggestions, please open an issue on the [GitHub repository](https://github.com/yourusername/logstash-vscode/issues).
 
-* [Extension Guidelines](https://code.visualstudio.com/api/references/extension-guidelines)
+## License
 
-## Working with Markdown
+This extension is licensed under the [MIT License](LICENSE).
 
-You can author your README using Visual Studio Code. Here are some useful editor keyboard shortcuts:
+---
 
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux).
-* Toggle preview (`Shift+Cmd+V` on macOS or `Shift+Ctrl+V` on Windows and Linux).
-* Press `Ctrl+Space` (Windows, Linux, macOS) to see a list of Markdown snippets.
-
-## For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+**Enjoy building your Logstash pipelines!**
